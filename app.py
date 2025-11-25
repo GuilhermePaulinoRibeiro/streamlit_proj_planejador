@@ -66,7 +66,7 @@ def build_prompt(cidade_input, vibe_input, pessoas_input, tempo_input, extra_inp
 # -------------------------------------------------------------
 def gerar_roteiro(prompt):
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
         # IMPORTANTE: na versão 0.7.2 é obrigatório enviar contents como lista
         response = model.generate_content(
