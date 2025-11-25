@@ -4,7 +4,7 @@ import google.generativeai as genai
 # ------------------------------------------------------------
 # CONFIGURAÇÃO
 # ------------------------------------------------------------
-AI_STUDIO_API_KEY = "AIzaSyBhxcIutyJe4gFXh-1bOg13MYXDubm6h9Y"
+AI_STUDIO_API_KEY = "SUA_API_KEY_AQUI"
 genai.configure(api_key=AI_STUDIO_API_KEY)
 
 # ------------------------------------------------------------
@@ -12,9 +12,10 @@ genai.configure(api_key=AI_STUDIO_API_KEY)
 # ------------------------------------------------------------
 def gerar_roteiro(texto):
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-pro")  # MODELO SUPORTADO NA v1beta
         response = model.generate_content(texto)
         return response.text
+
     except Exception as e:
         return f"❌ Erro ao gerar roteiro:\n{str(e)}"
 
