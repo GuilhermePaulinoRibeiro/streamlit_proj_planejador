@@ -2,20 +2,26 @@ import streamlit as st
 import google.generativeai as genai
 from textwrap import dedent
 
-# 1. Configuração da Página
+# -------------------------------------------------------------
+# 1. Configuração da página
+# -------------------------------------------------------------
 st.set_page_config(page_title="Planejador de Fim de Semana", layout="centered")
 
 st.title("🗺️ Planejador de Fim de Semana")
-st.write("Receba um roteiro de um dia (Sábado) baseado na sua cidade e na vibe desejada.")
+st.write("Receba um roteiro de um dia (sábado) baseado na sua cidade e na vibe desejada.")
 
-# 2. Configuração da API Key (Segurança)
+# -------------------------------------------------------------
+# 2. API Key do Gemini
+# -------------------------------------------------------------
 if "AI_STUDIO_API_KEY" not in st.secrets:
     st.error("❌ Adicione AI_STUDIO_API_KEY em Settings → Secrets.")
-    st.stop()  # Para a execução se não tiver a chave
+    st.stop()
 else:
     genai.configure(api_key=st.secrets["AI_STUDIO_API_KEY"])
 
-# 3. Entradas do Usuário (Inputs)
+# -------------------------------------------------------------
+# 3. Inputs do usuário
+# -------------------------------------------------------------
 cidade = st.text_input("Cidade (ex: São Paulo, SP)")
 vibe = st.selectbox("Vibe", ["Relaxante", "Cultural", "Aventura", "Gastronômico", "Romântico", "Com crianças"])
 
@@ -27,51 +33,76 @@ with col2:
 
 extra = st.text_area("Preferências / Restrições (opcional)")
 
-# 4. Funções do "Cérebro" da Aplicação
+
+# -------------------------------------------------------------
+# 4. Construção do prompt
+# -------------------------------------------------------------
 def build_prompt(cidade_input, vibe_input, pessoas_input, tempo_input, extra_input):
     return dedent(f"""
     Você é um planejador de roteiros local.
     Crie um roteiro de um dia (sábado) para alguém na cidade de {cidade_input} que deseja uma vibe {vibe_input}.
 
-    - Divida em MANHÃ, TARDE, NOITE
-    - Para cada período descreva:
-      • Atividade
-      • Horário sugerido
-      • Descrição (2–3 frases)
-      • Dica prática
+    Divida o roteiro em:
+    - MANHÃ
+    - TARDE
+    - NOITE
+
+    Para cada período, descreva:
+    • Atividade
+    • Horário sugerido
+    • Descrição (2 a 3 frases)
+    • Dica prática
 
     Adapte para {pessoas_input} pessoa(s).
     Preferência de transporte: {tempo_input}.
-    Restrições/preferências: {extra_input}.
-    Escreva de forma objetiva e amigável.
+    Restrições / preferências: {extra_input or "Nenhuma"}.
+
+    Escreva de forma objetiva, organizada e amigável.
     """)
 
-def gerar_roteiro(prompt):
-    # Usando o modelo mais atual (Flash é rápido e eficiente)
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    resposta = model.generate_content(prompt)
-    return resposta.text
 
-# 5. Botão e Exibição do Resultado
+# -------------------------------------------------------------
+# 5. Função que chama o Gemini (100% compatível)
+# -------------------------------------------------------------
+def gerar_roteiro(prompt):
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        response = model.generate(
+            contents=prompt
+        )
+
+        # Algumas versões retornam .text, outras usam candidates.
+        if hasattr(response, "text"):
+            return response.text
+
+        elif hasattr(response, "candidates") and response.candidates:
+            return response.candidates[0].content.parts[0].text
+
+        else:
+            return "⚠️ Erro: resposta inesperada do modelo."
+
+    except Exception as e:
+        return f"❌ Erro ao gerar roteiro: {e}"
+
+
+# -------------------------------------------------------------
+# 6. Botão principal
+# -------------------------------------------------------------
 if st.button("Gerar roteiro"):
     if not cidade.strip():
         st.warning("⚠️ Por favor, informe a cidade.")
     else:
         with st.spinner("Gerando roteiro..."):
-            try:
-                # Chamando as funções criadas acima
-                prompt_final = build_prompt(cidade, vibe, pessoas, tempo, extra)
-                resultado = gerar_roteiro(prompt_final)
-                
-                st.markdown("### 📝 Roteiro gerado")
-                st.write(resultado)
-                
-                # Opcional: Mostrar o texto puro em um expansor se quiser copiar
-                with st.expander("Ver código do texto"):
-                    st.code(resultado)
-                    
-            except Exception as e:
-                st.error(f"Erro ao gerar: {e}")
+            prompt_final = build_prompt(cidade, vibe, pessoas, tempo, extra)
+            resultado = gerar_roteiro(prompt_final)
+
+        st.markdown("### 📝 Roteiro gerado")
+        st.write(resultado)
+
+        with st.expander("Ver texto puro"):
+            st.code(resultado)
+
 
 st.markdown("---")
 st.caption("App criado para atividade: IA + Streamlit.")
