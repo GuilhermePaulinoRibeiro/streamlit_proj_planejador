@@ -62,25 +62,21 @@ def build_prompt(cidade_input, vibe_input, pessoas_input, tempo_input, extra_inp
 
 
 # -------------------------------------------------------------
-# 5. Função que chama o Gemini (100% compatível)
+# 5. Função que chama o Gemini (compatível com 0.7.2)
 # -------------------------------------------------------------
 def gerar_roteiro(prompt):
     try:
         model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
-        response = model.generate(
-            contents=prompt
+        # IMPORTANTE: na versão 0.7.2 é obrigatório enviar contents como lista
+        response = model.generate_content(
+            contents=[prompt]
         )
 
-        # Algumas versões retornam .text, outras usam candidates.
         if hasattr(response, "text"):
             return response.text
 
-        elif hasattr(response, "candidates") and response.candidates:
-            return response.candidates[0].content.parts[0].text
-
-        else:
-            return "⚠️ Erro: resposta inesperada do modelo."
+        return "⚠️ Resposta inesperada do modelo."
 
     except Exception as e:
         return f"❌ Erro ao gerar roteiro: {e}"
