@@ -1,35 +1,34 @@
 import streamlit as st
 import google.generativeai as genai
 
-# ------------------------------------------------------------
-# CONFIGURAÇÃO
-# ------------------------------------------------------------
-AI_STUDIO_API_KEY = "AIzaSyBhxcIutyJe4gFXh-1bOg13MYXDubm6h9Y"
-genai.configure(api_key=AI_STUDIO_API_KEY)
+# ---------------------------------------
+# CONFIG
+# ---------------------------------------
+genai.configure(api_key=st.secrets["AI_STUDIO_API_KEY"])
 
-# ------------------------------------------------------------
-# FUNÇÃO PARA GERAR ROTEIRO
-# ------------------------------------------------------------
-def gerar_roteiro(texto):
+# ---------------------------------------
+# GERAR ROTEIRO
+# ---------------------------------------
+def gerar_roteiro(prompt):
     try:
-        model = genai.GenerativeModel("gemini-pro")  # MODELO SUPORTADO NA v1beta
-        response = model.generate_content(texto)
-        return response.text
+        model = genai.GenerativeModel("gemini-1.0-pro")
+        resp = model.generate_content(prompt)
+        return resp.text
 
     except Exception as e:
-        return f"❌ Erro ao gerar roteiro:\n{str(e)}"
+        return f"❌ Erro ao gerar roteiro:\n{e}"
 
-# ------------------------------------------------------------
-# INTERFACE STREAMLIT
-# ------------------------------------------------------------
-st.title("Gerador de Roteiros – AWS")
+# ---------------------------------------
+# UI
+# ---------------------------------------
+st.title("Planejador de Fim de Semana")
 
-entrada = st.text_area("Digite o tema do roteiro:")
+cidade = st.text_input("Cidade:")
+vibe = st.selectbox("Vibe", ["Relaxante", "Cultural", "Aventura"])
 
-if st.button("Gerar Roteiro"):
-    if entrada.strip() == "":
-        st.warning("Digite algum conteúdo primeiro!")
+if st.button("Gerar"):
+    if not cidade:
+        st.warning("Digite uma cidade.")
     else:
-        saida = gerar_roteiro(entrada)
-        st.write("### Resultado:")
-        st.write(saida)
+        prompt = f"Crie um roteiro para sábado na cidade de {cidade} com vibe {vibe}."
+        st.write(gerar_roteiro(prompt))
