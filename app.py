@@ -4,7 +4,7 @@ import google.generativeai as genai
 # ------------------------------------------------------------
 # CONFIGURAÇÃO
 # ------------------------------------------------------------
-AI_STUDIO_API_KEY = "SUA_API_KEY_AQUI"
+AI_STUDIO_API_KEY = "AIzaSyBhxcIutyJe4gFXh-1bOg13MYXDubm6h9Y"
 genai.configure(api_key=AI_STUDIO_API_KEY)
 
 # ------------------------------------------------------------
